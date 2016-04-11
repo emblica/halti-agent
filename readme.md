@@ -2,7 +2,7 @@
 
 
 ## Build
-``
+```
 docker build -t emb/halti-agent .
 ```
 

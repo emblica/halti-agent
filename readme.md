@@ -16,5 +16,6 @@ PORT_BIND_IP=192.168.99.100
 ```
 
 ## Run
-
+```
 docker run -it --privileged -v /var/run/docker.sock:/var/run/docker.sock -e DOCKER_HOST=unix:///var/run/docker.sock -e HALTI_SERVER=http://192.168.100.106:4040 -e PORT_BIND_IP=192.168.99.100 emb/halti-agent
+```

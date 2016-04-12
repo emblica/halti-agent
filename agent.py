@@ -76,7 +76,9 @@ def generate_environment_vars(env_list):
 def start_container(specs):
     image = client.pull(specs['image'], stream=True, insecure_registry=allow_insecure_registry)
     for status_json in image:
-        status = json.loads(status_json.decode('utf-8'))
+        if isinstance(status_json, bytes):
+            status_json = status_json.decode('utf-8')
+        status = json.loads(status_json)
     env = generate_environment_vars(specs['environment'])
     ports = {}
     for port in specs['ports']:
@@ -159,13 +161,12 @@ def statekeeper_loop(a):
     while statekeeping:
         try:
             agent_state = agent_state_queue.get(True, 1)
-            try:
-                set_state(agent_state)
-                agent_state_queue.task_done()
-            except Exception as e:
-                print(e)
+            set_state(agent_state)
+            agent_state_queue.task_done()
         except Empty as e:
             pass
+        except Exception as e:
+            print(e)
 
 print("Starting up!")
 state = load_state()

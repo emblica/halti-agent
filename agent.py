@@ -161,15 +161,18 @@ def statekeeper_loop(a):
             agent_state = agent_state_queue.get(True, 1)
             try:
                 set_state(agent_state)
+                agent_state_queue.task_done()
             except Exception as e:
                 print(e)
-            agent_state_queue.task_done()
         except Empty as e:
             pass
 
+print("Starting up!")
 state = load_state()
 state['instance_id'], state['heartbeat_interval'] = register(state, client)
+print("Loaded state / registered!")
 save_state(state)
+print("State saved.")
 
 
 # Starting heartbeat

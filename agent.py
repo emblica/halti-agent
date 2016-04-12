@@ -144,10 +144,12 @@ def set_state(state):
 
 
     for service_id in services_to_remove:
+        print("removing", service_id)
         container_id = old_services[service_id]['Id']
         client.stop(container_id)
         client.remove_container(container_id)
     for service_id in services_to_start:
+        print("starting", service_id)
         service = services[service_id]
         start_container(service)
 
@@ -156,7 +158,10 @@ def statekeeper_loop(a):
     while statekeeping:
         try:
             agent_state = agent_state_queue.get(True, 1)
-            set_state(agent_state)
+            try:
+                set_state(agent_state)
+            except Exception as e:
+                print(e)
             agent_state_queue.task_done()
         except Empty as e:
             pass

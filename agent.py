@@ -15,6 +15,7 @@ import sys
 PORT_BIND_IP = os.environ.get('PORT_BIND_IP', '192.168.99.100')
 
 halti_server_url = os.environ.get('HALTI_SERVER', 'http://localhost:4040')
+allow_insecure_registry = os.environ.get('ALLOW_INSEC_REGISTRY', 'FALSE') == 'TRUE'
 state_file_path = 'state.json'
 state = {}
 
@@ -73,7 +74,7 @@ def generate_environment_vars(env_list):
     return en
 
 def start_container(specs):
-    image = client.pull(specs['image'], stream=True)
+    image = client.pull(specs['image'], stream=True, insecure_registry=allow_insecure_registry)
     for status_json in image:
         status = json.loads(status_json.decode('utf-8'))
     env = generate_environment_vars(specs['environment'])

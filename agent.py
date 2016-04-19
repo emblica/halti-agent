@@ -17,7 +17,7 @@ PORT_BIND_IP = os.environ.get('PORT_BIND_IP', '192.168.99.100')
 halti_server_url = os.environ.get('HALTI_SERVER', 'http://localhost:4040')
 allow_insecure_registry = os.environ.get('ALLOW_INSEC_REGISTRY', 'FALSE') == 'TRUE'
 state_file_path = 'state.json'
-state = {}
+state = {'heartbeat_interval': 10}
 
 options = kwargs_from_env()
 options['version'] = '1.20'
@@ -35,7 +35,7 @@ def load_state():
         state_file.close()
         return state
   except Exception as e:
-      return {}
+      return {'heartbeat_interval': 10}
 
 def save_state(state):
   with open(state_file_path, 'w') as state_file:
@@ -92,11 +92,11 @@ def start_container(specs):
     host_conf = client.create_host_config(restart_policy={"Name": "always"},
                                           port_bindings=ports)
     container = client.create_container(image=specs['image'],
-                                     name=specs['service_id'],
-                                     ports=specs['ports'],
-                                     environment=env,
-                                     labels=labels,
-                                     host_config=host_conf)
+                                        name=specs['service_id'],
+                                        ports=specs['ports'],
+                                        environment=env,
+                                        labels=labels,
+                                        host_config=host_conf)
     client.start(container=container.get('Id'))
 
 
@@ -122,6 +122,7 @@ def heartbeat(state):
     return None
 
 def set_state(state):
+    print("Setting state...")
     service_list = state['services']
     old_service_list = halti_containers()
     services = {}
@@ -179,8 +180,10 @@ print("State saved.")
 # Starting heartbeat
 hb_thread = Thread(target=heartbeating_loop, args=(state,))
 hb_thread.start()
+print("Heartbeating started!")
 statekeeper_thread = Thread(target=statekeeper_loop, args=(None,))
 statekeeper_thread.start()
+print("Statekeeper started!")
 
 
 def signal_handler(signal, frame):

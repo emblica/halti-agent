@@ -20,13 +20,13 @@ state_file_path = 'state.json'
 state = {'heartbeat_interval': 10}
 
 options = kwargs_from_env()
-options['version'] = '1.20'
+options['version'] = '1.22'
 
 client = Client(**options)
 agent_state_queue = Queue()
 
-heartbeating = True
-statekeeping = True
+
+
 
 def load_state():
   try:
@@ -101,8 +101,7 @@ def start_container(specs):
 
 
 def heartbeating_loop(state):
-    global heartbeating
-    while heartbeating:
+    while True:
         hb = heartbeat(state)
         if hb:
             agent_state_queue.put(hb, True, 5)
@@ -157,17 +156,20 @@ def set_state(state):
         service = services[service_id]
         start_container(service)
 
-def statekeeper_loop(a):
-    global statekeeping
-    while statekeeping:
-        try:
-            agent_state = agent_state_queue.get(True, 1)
+
+
+class StatekeeperWorker(Thread):
+    def __init__(self, queue):
+        Thread.__init__(self)
+        self.queue = queue
+
+    def run(self):
+        print("Statekeeper started!")
+        while True:
+            agent_state = self.queue.get()
             set_state(agent_state)
-            agent_state_queue.task_done()
-        except Empty as e:
-            pass
-        except Exception as e:
-            print(e)
+            self.queue.task_done()
+
 
 print("Starting up!")
 state = load_state()
@@ -177,24 +179,13 @@ save_state(state)
 print("State saved.")
 
 
-# Starting heartbeat
-hb_thread = Thread(target=heartbeating_loop, args=(state,))
-hb_thread.start()
-print("Heartbeating started!")
-statekeeper_thread = Thread(target=statekeeper_loop, args=(None,))
-statekeeper_thread.start()
+
+print("Starting statekeeper...")
+statekeeper = StatekeeperWorker(agent_state_queue)
+statekeeper.daemon = True
+statekeeper.start()
+
 print("Statekeeper started!")
 
-
-def signal_handler(signal, frame):
-        print('Stopping agent...')
-        global heartbeating
-        global statekeeping
-        heartbeating = False
-        statekeeping = False
-        statekeeper_thread.join(1)
-        hb_thread.join(1)
-        sys.exit(0)
-
-signal.signal(signal.SIGINT, signal_handler)
-signal.pause()
+print("Starting heartbeat...")
+heartbeating_loop(state)

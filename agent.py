@@ -11,8 +11,28 @@ from docker import Client
 from docker.utils import kwargs_from_env
 import signal
 import sys
+import logging
 
-PORT_BIND_IP = os.environ.get('PORT_BIND_IP', '192.168.99.100')
+
+# create logger
+logger = logging.getLogger('halti-agent')
+logger.setLevel(logging.INFO)
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# create formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
+
+
+PORT_BIND_IP = os.environ.get('PORT_BIND_IP', '192.168.99.103')
 
 halti_server_url = os.environ.get('HALTI_SERVER', 'http://localhost:4040')
 allow_insecure_registry = os.environ.get('ALLOW_INSEC_REGISTRY', 'FALSE') == 'TRUE'
@@ -81,8 +101,15 @@ def start_container(specs):
         status = json.loads(status_json)
     env = generate_environment_vars(specs['environment'])
     ports = {}
+    ports_declaration = []
     for port in specs['ports']:
-        ports[int(port)] = (PORT_BIND_IP,)
+        # For backwards compatibility
+        if type(port) is int or (hasattr(port, 'isdigit') and port.isdigit()):
+            ports_declaration.append(port)
+            ports[int(port)] = (PORT_BIND_IP,)
+        else:
+            k = "{}/{}".format(port['port'], port['protocol'])
+            ports[k] = (PORT_BIND_IP,)
     #specs.get('command', None)
     labels = {
               "halti": "true",
@@ -109,7 +136,7 @@ def heartbeating_loop(state):
 
 
 def heartbeat(state):
-  print("Heartbeat!")
+  logger.info("Heartbeat!")
   try:
       heartbeat_url = halti_server_url + '/api/v1/instances/' + state['instance_id'] + '/heartbeat'
       payload = {"containers": halti_containers()}
@@ -117,11 +144,11 @@ def heartbeat(state):
       resp = r.json()
       return resp
   except Exception as e:
-    print(e)
+    logger.error(e)
     return None
 
 def set_state(state):
-    print("Setting state...")
+    logger.info("Setting state...")
     service_list = state['services']
     old_service_list = halti_containers()
     services = {}
@@ -147,12 +174,12 @@ def set_state(state):
 
 
     for service_id in services_to_remove:
-        print("removing", service_id)
+        logger.info("removing {}".format(service_id))
         container_id = old_services[service_id]['Id']
         client.stop(container_id)
         client.remove_container(container_id)
     for service_id in services_to_start:
-        print("starting", service_id)
+        logger.info("starting {}".format(service_id))
         service = services[service_id]
         start_container(service)
 
@@ -164,28 +191,28 @@ class StatekeeperWorker(Thread):
         self.queue = queue
 
     def run(self):
-        print("Statekeeper started!")
+        logger.info("Statekeeper started!")
         while True:
             agent_state = self.queue.get()
             set_state(agent_state)
             self.queue.task_done()
 
 
-print("Starting up!")
+logger.info("Starting up!")
 state = load_state()
 state['instance_id'], state['heartbeat_interval'] = register(state, client)
-print("Loaded state / registered!")
+logger.info("Loaded state / registered!")
 save_state(state)
-print("State saved.")
+logger.info("State saved.")
 
 
 
-print("Starting statekeeper...")
+logger.info("Starting statekeeper...")
 statekeeper = StatekeeperWorker(agent_state_queue)
 statekeeper.daemon = True
 statekeeper.start()
 
-print("Statekeeper started!")
+logger.info("Statekeeper started!")
 
-print("Starting heartbeat...")
+logger.info("Starting heartbeat...")
 heartbeating_loop(state)

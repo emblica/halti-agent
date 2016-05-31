@@ -109,7 +109,10 @@ def start_container(specs):
             ports[int(port)] = (PORT_BIND_IP,)
         else:
             k = "{}/{}".format(port['port'], port['protocol'])
-            ports[k] = (PORT_BIND_IP,)
+            if 'source' in port:
+                ports[k] = (PORT_BIND_IP,port['source'])
+            else:
+                ports[k] = (PORT_BIND_IP,)
     #specs.get('command', None)
     labels = {
               "halti": "true",

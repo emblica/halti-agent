@@ -109,7 +109,10 @@ def start_container(specs):
             ports[int(port)] = (PORT_BIND_IP,)
         else:
             k = "{}/{}".format(port['port'], port['protocol'])
-            ports_declaration.append(port['port'])
+            if port['protocol'] == 'udp':
+                ports_declaration.append((port['port'], 'udp'))
+            else:
+                ports_declaration.append(port['port'])
             if 'source' in port:
                 ports[k] = (PORT_BIND_IP,port['source'])
             else:

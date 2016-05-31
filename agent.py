@@ -109,6 +109,7 @@ def start_container(specs):
             ports[int(port)] = (PORT_BIND_IP,)
         else:
             k = "{}/{}".format(port['port'], port['protocol'])
+            ports_declaration.append(port['port'])
             if 'source' in port:
                 ports[k] = (PORT_BIND_IP,port['source'])
             else:
@@ -123,7 +124,7 @@ def start_container(specs):
                                           port_bindings=ports)
     container = client.create_container(image=specs['image'],
                                         name=specs['service_id'],
-                                        ports=specs['ports'],
+                                        ports=ports_declaration,
                                         environment=env,
                                         labels=labels,
                                         host_config=host_conf)

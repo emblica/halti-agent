@@ -99,7 +99,9 @@ def start_container(specs):
         if isinstance(status_json, bytes):
             status_json = status_json.decode('utf-8')
         status = json.loads(status_json)
+
     env = generate_environment_vars(specs['environment'])
+    env['HALTI_SERVICE_ID'] = specs['service_id']
     ports = {}
     ports_declaration = []
     for port in specs['ports']:

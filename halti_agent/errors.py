@@ -1,0 +1,3 @@
+
+class HaltiException(Exception):
+    pass

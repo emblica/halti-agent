@@ -3,6 +3,8 @@ from queue import Queue
 import sys
 import time
 
+VERSION = '0.1.0'
+
 import requests
 
 from halti_agent import comms, halti_agent_info
@@ -40,6 +42,7 @@ def main_loop(state, statekeeper):
 
 if __name__ == '__main__':
     logger.info('Starting Halti-Agent...')
+    logger.info('VERSION:'+VERSION)
     logger.info('Information: {}'.format(halti_agent_info()))
 
     # load state from STATE_FILE or Halti Master

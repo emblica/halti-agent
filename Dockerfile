@@ -1,2 +1,2 @@
-FROM python:3.4-onbuild
+FROM python:3.5-onbuild
 CMD [ "python", "./agent.py" ]

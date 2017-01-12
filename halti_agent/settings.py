@@ -49,6 +49,8 @@ PORT_BIND_IP = get_env('PORT_BIND_IP', '127.0.0.1')
 HALTI_SERVER_URL = get_env('HALTI_SERVER', 'http://localhost:4040')
 ALLOW_INSECURE_REGISTRY = get_env('ALLOW_INSEC_REGISTRY', False)
 
+CAPABILITIES = get_env('CAPABILITIES', '').split(',')
+
 STATE_FILE = 'state.json'
 
 DOCKER_OPTIONS = options = {

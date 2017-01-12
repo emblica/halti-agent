@@ -52,5 +52,6 @@ def platform_state(docker_client):
             'system_version': platform.version(),
             'hostname': platform.node()
         },
+        'capabilities': settings.CAPABILITIES,
         'docker_client': docker_client.version()
     }

@@ -79,7 +79,6 @@ def start_container(spec):
         restart_policy={'Name': 'always'},
         port_bindings=ports
     )
-
     container = docker_client.create_container(
         image=spec['image'],
         name=spec['service_id'],
@@ -89,4 +88,5 @@ def start_container(spec):
         host_config=host_conf
     )
 
+    comms.notify_master(comms.Events.START_CONTAINER, spec['service_id'])
     docker_client.start(container=container.get('Id'))

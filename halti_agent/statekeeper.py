@@ -10,6 +10,7 @@ for testability. (see: StatekeeperWorker.__init__)
 import logging
 from threading import Thread
 
+from halti_agent import comms
 from halti_agent.func_utils import diff
 
 logger = logging.getLogger('halti-agent-statekeeper')
@@ -59,6 +60,9 @@ def set_state(desired_state, container_client):
     for name in to_remove:
         logger.info('removing {}'.format(name))
         container_id = current[name]['Id']
+        # Notify master
+        comms.notify_master(comms.Events.STOP_CONTAINER, name)
+
         container_client.stop_and_remove(container_id)
 
     # start

@@ -56,6 +56,8 @@ class Events(object):
     """Halti Event constants."""
     PULL_FAILED = 'PULL_FAILED'
     PULL_START = 'PULL_START'
+    START_CONTAINER = 'START_CONTAINER'
+    STOP_CONTAINER = 'STOP_CONTAINER'
 
 
 def halti_event(event, meta=''):

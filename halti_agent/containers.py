@@ -81,6 +81,7 @@ def start_container(spec):
     )
     container = docker_client.create_container(
         image=spec['image'],
+        command=spec['command'],
         name=spec['service_id'],
         ports=ports_declaration,
         environment=env,

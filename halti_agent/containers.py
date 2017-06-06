@@ -79,11 +79,18 @@ def start_container(spec):
         restart_policy={'Name': 'always'},
         port_bindings=ports
     )
+    # Extract extra hosts
+    extra_hosts = None
+    if spec['extra_hosts']:
+        extra_hosts = {}
+        for host in spec['extra_hosts']:
+            extra_hosts[host['host']] = host['ip']
+
     container = docker_client.create_container(
         image=spec['image'],
         command=spec['command'],
         name=spec['service_id'],
-        extra_hosts=spec['extra_hosts'],
+        extra_hosts=extra_hosts,
         ports=ports_declaration,
         environment=env,
         labels=labels,

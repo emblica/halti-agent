@@ -83,6 +83,7 @@ def start_container(spec):
         image=spec['image'],
         command=spec['command'],
         name=spec['service_id'],
+        extra_hosts=spec['extra_hosts'],
         ports=ports_declaration,
         environment=env,
         labels=labels,

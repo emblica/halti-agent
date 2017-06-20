@@ -89,16 +89,18 @@ def start_container(spec):
         port_bindings=ports
     )
 
+    container_params = {
+            "image": spec['image'],
+            "name": spec['service_id'],
+            "ports": ports_declaration,
+            "environment": env,
+            "labels": labels,
+            "host_config": host_conf
+    }
+    if spec.get('command'):
+        container_params['command'] = spec.get('command')
 
-    container = docker_client.create_container(
-        image=spec['image'],
-        command=spec.get('command'),
-        name=spec['service_id'],
-        ports=ports_declaration,
-        environment=env,
-        labels=labels,
-        host_config=host_conf
-    )
+    container = docker_client.create_container(**container_params)
 
     comms.notify_master(comms.Events.START_CONTAINER, spec['service_id'])
     docker_client.start(container=container.get('Id'))

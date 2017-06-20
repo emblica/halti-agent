@@ -78,6 +78,7 @@ def start_container(spec):
     # Extract extra hosts
     extra_hosts = None
     if 'extra_hosts' in spec:
+        logger.info('Extra hosts defined in spec {}'.format(spec['name']))
         extra_hosts = {}
         for host in spec['extra_hosts']:
             extra_hosts[host['host']] = host['ip']
@@ -97,7 +98,8 @@ def start_container(spec):
             "labels": labels,
             "host_config": host_conf
     }
-    if 'command' in spec:
+    if 'command' in spec and len(spec.get('command')) > 0:
+        logger.info('Command defined in spec {}'.format(spec['name']))
         container_params['command'] = spec.get('command')
 
     container = docker_client.create_container(**container_params)

@@ -10,7 +10,7 @@ from halti_agent import comms, settings
 from halti_agent.func_utils import env_pairs_to_dict
 
 from docker import Client
-from docker.errors import DockerException
+from docker.errors import DockerException, APIError
 
 logger = logging.getLogger('halti-agent')
 
@@ -86,7 +86,6 @@ def start_container(spec):
     host_conf = docker_client.create_host_config(
         restart_policy={'Name': 'always'},
         extra_hosts=extra_hosts,
-
         port_bindings=ports
     )
 
@@ -102,7 +101,12 @@ def start_container(spec):
         logger.info('Command defined in spec {}'.format(spec['name']))
         container_params['command'] = spec.get('command')
 
-    container = docker_client.create_container(**container_params)
+    try:
+        container = docker_client.create_container(**container_params)
 
-    comms.notify_master(comms.Events.START_CONTAINER, spec['service_id'])
-    docker_client.start(container=container.get('Id'))
+        comms.notify_master(comms.Events.START_CONTAINER, spec['service_id'])
+        docker_client.start(container=container.get('Id'))
+    except APIError as ex:
+        logger.error('Docker API Error: starting container. {}'.format(ex), exc_info=True)
+        comms.notify_master(comms.Events.START_CONTAINER_FAILED, str(ex))
+        return

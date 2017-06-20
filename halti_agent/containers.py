@@ -77,7 +77,7 @@ def start_container(spec):
 
     # Extract extra hosts
     extra_hosts = None
-    if spec['extra_hosts']:
+    if 'extra_hosts' in spec:
         extra_hosts = {}
         for host in spec['extra_hosts']:
             extra_hosts[host['host']] = host['ip']

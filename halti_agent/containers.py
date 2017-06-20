@@ -85,12 +85,14 @@ def start_container(spec):
     host_conf = docker_client.create_host_config(
         restart_policy={'Name': 'always'},
         extra_hosts=extra_hosts,
+
         port_bindings=ports
     )
 
+
     container = docker_client.create_container(
         image=spec['image'],
-        command=spec['command'],
+        command=spec.get('command'),
         name=spec['service_id'],
         ports=ports_declaration,
         environment=env,

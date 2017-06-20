@@ -97,7 +97,7 @@ def start_container(spec):
             "labels": labels,
             "host_config": host_conf
     }
-    if spec.get('command'):
+    if 'command' in spec:
         container_params['command'] = spec.get('command')
 
     container = docker_client.create_container(**container_params)
